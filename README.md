@@ -17,7 +17,7 @@
 
 ### KeyWord finally
 
-- 在设置后台进程时， **最后一个后台线程的 finally 会不执行**
+- 在设置后台进程时， **后台线程的 finally 会不执行**
 
 ### Implementation
 
@@ -42,6 +42,11 @@
 - setPriority 设置优先级
 - setDaemon 设置后台进程
 - join 等待线程结束，可以设置超时时间
+- setUncaughtExceptionHandler 设置异常处理器
+
+#### ThreadFactory
+
+- Thread 工厂，生成 Thread
 
 #### Executor
 
@@ -52,6 +57,32 @@
 - CachedThreadPool 缓存
 - FixedThreadPool 固定大小
 - SingleThreadExecutor 单线程，多任务排队
+
+#### Lock
+
+- 锁对象，相当于 synchronized
+- 在 finalize 中 unlock
+- 实现锁的高级功能，如超时
+
+### AtomicXXX
+
+- 原子操作
+- 锁更安全一些，Atomic 系列类是为 java.util.concurrent 服务
+
+#### synchronized
+
+- 设置域为 private，保证只有方法可以访问该字段的值
+- 共享域需要同步
+- 锁方法：当前对象只有一个线程能访问该方法，效率低
+- 锁对象：用于临界区，锁方法中的部分代码片段，效率高
+- 不具备超时等特性
+
+#### volatile
+
+- 立即写入主存中，所有线程都看得到，避免缓存影响
+- 保证 long、double 赋值操作的原子性
+- 只有一个值会改变的情况下使用 
+- 不能保证线程安全
 
 ### 有意思的问题：为什么 System.out.println() 不会被中断？
 
@@ -68,3 +99,11 @@
 
 System 包的 out 是静态对象，只有一个实例，在执行 println，锁住自己，下个线程想用 System.out 的方法，只能等当前操作结束。
 这在多线程是个性能天坑。每个线程如果都有 System.out.println 方法，互相阻塞。可以参考项目下 NumberMain 测试。
+
+### 承诺升级理论
+
+线程组的启示：继续错误的代价由别人来承担，而承认错误的代价由自己来承担。
+
+### 线程很简单
+
+如果某个人表示线程机制很容易或者很简单，那么请确保这个人没有对你的项目作出重要的决策。如果这个人已经在做了，那么你就已经陷入麻烦中了。
