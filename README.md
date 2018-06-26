@@ -19,6 +19,31 @@
 
 - 在设置后台进程时， **后台线程的 finally 会不执行**
 
+### 终结任务
+
+- 小心谨慎
+
+### 线程状态
+
+1 new
+2 runnable
+3 blocked 
+4 dead
+
+#### blocked 触发条件
+
+- sleep
+- wait 挂起（notify 再次进入就绪状态）
+- 等待输入输出
+- 试图 synchronized，被其他线程锁住
+
+#### InterruptedException
+
+- 中断线程
+- 注意清理资源
+- IO、synchronized 不可中断
+- NIO 提供了新中断方式
+
 ### Implementation
 
 #### Runnable
@@ -43,6 +68,7 @@
 - setDaemon 设置后台进程
 - join 等待线程结束，可以设置超时时间
 - setUncaughtExceptionHandler 设置异常处理器
+- interrupted 可以查询是否产生中断，并清除中断状态
 
 #### ThreadFactory
 
@@ -63,11 +89,16 @@
 - 锁对象，相当于 synchronized
 - 在 finalize 中 unlock
 - 实现锁的高级功能，如超时
+- lockInterruptibly 产生中断
 
 ### AtomicXXX
 
 - 原子操作
 - 锁更安全一些，Atomic 系列类是为 java.util.concurrent 服务
+
+### ThreadLocal
+
+- 线程本地存储
 
 #### synchronized
 
@@ -76,6 +107,7 @@
 - 锁方法：当前对象只有一个线程能访问该方法，效率低
 - 锁对象：用于临界区，锁方法中的部分代码片段，效率高
 - 不具备超时等特性
+- 具有锁的对象可以访问其他该对象加锁的方法
 
 #### volatile
 
