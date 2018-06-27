@@ -25,10 +25,10 @@
 
 ### 线程状态
 
-1 new
-2 runnable
-3 blocked 
-4 dead
+1. new
+1. runnable
+1. blocked 
+1. dead
 
 #### blocked 触发条件
 
@@ -37,7 +37,7 @@
 - 等待输入输出
 - 试图 synchronized，被其他线程锁住
 
-#### 死锁
+### 死锁
 
 - 潜伏期长，很难复现
 
@@ -98,21 +98,21 @@
 - 实现锁的高级功能，如超时
 - lockInterruptibly 产生中断
 
-### AtomicXXX
+#### AtomicXXX
 
 - 原子操作
 - 锁更安全一些，Atomic 系列类是为 java.util.concurrent 服务
 
-### ThreadLocal
+#### ThreadLocal
 
 - 线程本地存储
 
-### BlockingQueue
+#### BlockingQueue
 
 - 阻塞队列
 - 配合 Enum 使用，组建流程
 
-### PipedReader & PipedWriter
+#### PipedReader & PipedWriter
 
 - 管道读写同步数据
 
