@@ -139,9 +139,15 @@
 - IO、synchronized 不可中断
 - NIO 提供了新中断方式
 
-# CountDownLatch
+#### CountDownLatch
 
 - 同步多个任务使用，首先新建 CountDownWatch 确定任务大小，各个任务 countDown，再 await 等待其他任务完成
+
+#### CyclicBarrier
+
+- 创建一组任务，并行工作，在所有所有任务完成之前等待
+- 相比于 CountDownLatch，可以多次触发
+- 构造函数参数包括所需任务数、所有任务完成之后执行的操作
 
 ### 有意思的问题：为什么 System.out.println() 不会被中断？
 
