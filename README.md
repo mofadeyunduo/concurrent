@@ -37,12 +37,16 @@
 - 等待输入输出
 - 试图 synchronized，被其他线程锁住
 
-#### InterruptedException
+#### 死锁
 
-- 中断线程
-- 注意清理资源
-- IO、synchronized 不可中断
-- NIO 提供了新中断方式
+- 潜伏期长，很难复现
+
+#### 产生条件
+
+- 互斥
+- 一个资源者持有资源
+- 资源不可以被抢占
+- 循环等待
 
 ### Implementation
 
@@ -103,6 +107,15 @@
 
 - 线程本地存储
 
+### BlockingQueue
+
+- 阻塞队列
+- 配合 Enum 使用，组建流程
+
+### PipedReader & PipedWriter
+
+- 管道读写同步数据
+
 #### synchronized
 
 - 设置域为 private，保证只有方法可以访问该字段的值
@@ -118,6 +131,17 @@
 - 保证 long、double 赋值操作的原子性
 - 只有一个值会改变的情况下使用 
 - 不能保证线程安全
+
+#### InterruptedException
+
+- 中断线程
+- 注意清理资源
+- IO、synchronized 不可中断
+- NIO 提供了新中断方式
+
+# CountDownLatch
+
+- 同步多个任务使用，首先新建 CountDownWatch 确定任务大小，各个任务 countDown，再 await 等待其他任务完成
 
 ### 有意思的问题：为什么 System.out.println() 不会被中断？
 

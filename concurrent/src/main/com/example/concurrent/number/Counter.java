@@ -1,4 +1,4 @@
-package main.com.example.concurrent.number;
+package com.example.concurrent.number;
 
 public class Counter {
 
