@@ -149,6 +149,20 @@
 - 相比于 CountDownLatch，可以多次触发
 - 构造函数参数包括所需任务数、所有任务完成之后执行的操作
 
+#### DelayedQueue
+
+- 延迟队列
+
+#### PriorityBlockingQueue
+
+- 优先级队列
+
+#### ScheduledExecutorService
+
+- 定时器
+- schedule 执行一次
+- scheduleAtFixedRate 多次执行
+
 ### 有意思的问题：为什么 System.out.println() 不会被中断？
 
 《Java 编程思想》提了一句 “System.out.println() 不会被中断”，疑惑的我去看源码，恍然大悟。
