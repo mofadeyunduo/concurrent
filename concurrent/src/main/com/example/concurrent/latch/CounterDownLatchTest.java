@@ -12,6 +12,14 @@ public class CounterDownLatchTest {
     private static final int WORKER_SIZE = 10;
     private static final CountDownLatch latch = new CountDownLatch(WORKER_SIZE);
 
+    public static void main(String[] args) {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        for (int i = 0; i < WORKER_SIZE; i++) {
+            executorService.execute(new Worker());
+        }
+        executorService.shutdown();
+    }
+
     public static class Worker implements Runnable {
 
         private final Random r = new Random();
@@ -29,14 +37,6 @@ public class CounterDownLatchTest {
                 System.out.println("worker has benn stopped");
             }
         }
-    }
-
-    public static void main(String[] args) {
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        for (int i = 0; i < WORKER_SIZE; i++) {
-            executorService.execute(new Worker());
-        }
-        executorService.shutdown();
     }
 
 }

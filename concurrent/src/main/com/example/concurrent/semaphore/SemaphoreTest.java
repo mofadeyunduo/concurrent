@@ -13,6 +13,14 @@ public class SemaphoreTest {
     private static final int SLEEP_SECONDS = 3;
     private static final Pool<Task> pool = new Pool<>(Task.class, POOL_SIZE);
 
+    public static void main(String[] args) {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        for (int i = 0; i < POOL_SIZE + 2; i++) {
+            executorService.execute(pool.checkout());
+        }
+        executorService.shutdown();
+    }
+
     public static class Pool<T> {
 
         private boolean[] checkout;
@@ -89,15 +97,6 @@ public class SemaphoreTest {
                 e.printStackTrace();
             }
         }
-    }
-
-
-    public static void main(String[] args) {
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        for (int i = 0; i < POOL_SIZE + 2; i++) {
-            executorService.execute(pool.checkout());
-        }
-        executorService.shutdown();
     }
 
 }
