@@ -74,6 +74,7 @@
 - setUncaughtExceptionHandler 设置异常处理器
 - interrupted 可以查询是否产生中断，并清除中断状态
 - wait 线程进入等待状态，**释放锁**，可以从 notify 恢复，建议用 while 而不是 if 执行 wait 操作，因为别的操作可能又让 wait 条件满足
+- wait 会释放 synchronized 的锁
 - notify 唤醒一个等待的线程，保证所有线程 wait 条件相同，在一个类中可能有很多任务，只唤醒当前任务相关的线程
 - notifyAll 唤醒所有等待的线程
 
