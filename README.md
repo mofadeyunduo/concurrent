@@ -133,6 +133,7 @@
 - 锁对象：用于临界区，锁方法中的部分代码片段，效率高
 - 不具备超时等特性
 - 具有锁的对象可以访问其他该对象加锁的方法
+- wait, notify, notifyAll 必须在 synchronized 下使用
 
 #### volatile
 
@@ -186,7 +187,11 @@
 ```
 
 System 包的 out 是静态对象，只有一个实例，在执行 println，锁住自己，下个线程想用 System.out 的方法，只能等当前操作结束。
-这在多线程是个性能天坑。每个线程如果都有 System.out.println 方法，互相阻塞。可以参考项目下 NumberMain 测试。
+这在多线程是个性能天坑。每个线程如果都有 System.out.println 方法，互相阻塞。可以参考项目下 com.example.concurrent.number.NumberMain 测试。
+
+### 三个线程互相打印
+
+三个线程按顺序打印 A、B、C，参见 com.example.concurrent.print.PrinterTest。
 
 ### 承诺升级理论
 
