@@ -133,7 +133,7 @@
 - 锁对象：用于临界区，锁方法中的部分代码片段，效率高
 - 不具备超时等特性
 - 具有锁的对象可以访问其他该对象加锁的方法
-- wait, notify, notifyAll 必须在 synchronized 下使用
+- wait, notify, notifyAll 必须在 synchronized 下使用，如果不这么使用，[可能会丢失 notify()](https://leokongwq.github.io/2017/02/24/java-why-wait-notify-called-in-synchronized-block.html)
 
 #### volatile
 
