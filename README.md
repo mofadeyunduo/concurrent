@@ -85,6 +85,11 @@
 - notify 唤醒一个等待的线程，保证所有线程 wait 条件相同，在一个类中可能有很多任务，只唤醒当前任务相关的线程
 - notifyAll 唤醒所有等待的线程
 
+#### FutureTask
+
+- 可取消
+- 异步计算
+
 #### ThreadFactory
 
 - Thread 工厂，生成 Thread
@@ -234,3 +239,30 @@ System 包的 out 是静态对象，只有一个实例，在执行 println，锁
 ### 线程很简单？
 
 如果某个人表示线程机制很容易或者很简单，那么请确保这个人没有对你的项目作出重要的决策。如果这个人已经在做了，那么你就已经陷入麻烦中了。
+
+### 双检锁
+
+双重检查，加锁。双重检查防止多次实例化。
+
+- 多线程下需要加锁
+- 在方法上加锁影响性能
+- 由于 JIT 编译不确定性，需要在资源上加上 volatile 防止编译器优化，导致获取到的 obj 为空的问题
+
+正确做法：
+
+```
+class SomeClass {
+  private volatile Resource resource = null;
+  public Resource getResource() {
+    if (resource == null) {
+      synchronized {
+        if (resource == null)
+          resource = new Resource();
+      }
+    }
+    return resource;
+  }
+}
+```
+
+参考[双重检查锁定原理详解](https://blog.csdn.net/li295214001/article/details/48135939/)。
