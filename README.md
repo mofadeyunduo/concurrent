@@ -48,6 +48,13 @@
 - 资源不可以被抢占
 - 循环等待
 
+### 免锁容器
+
+- 读取和写入同时发生
+- 写入时复制建立读取内容副本，读取操作读源数组，写入数据写副本，完成之后以原子性的操作将副本换入源数组
+- 只能保证最终一致性
+- CopyOnWriteXXX
+
 ### Implementation
 
 #### Runnable
@@ -98,11 +105,13 @@
 - 在 finalize 中 unlock
 - 实现锁的高级功能，如超时
 - lockInterruptibly 产生中断
+- 性能好（线性增长），可读性略低
 
 #### AtomicXXX
 
 - 原子操作
 - 锁更安全一些，Atomic 系列类是为 java.util.concurrent 服务
+- 乐观锁，性能一般很高，但并发量大时，CPU 消耗资源多
 
 #### ThreadLocal
 
@@ -134,6 +143,7 @@
 - 不具备超时等特性
 - 具有锁的对象可以访问其他该对象加锁的方法
 - wait, notify, notifyAll 必须在 synchronized 下使用，如果不这么使用，[可能会丢失 notify()](https://leokongwq.github.io/2017/02/24/java-why-wait-notify-called-in-synchronized-block.html)
+- 数据量大性能低，但可读性好
 
 #### volatile
 
@@ -167,11 +177,35 @@
 
 - 优先级队列
 
+#### ConcurrentHashMap
+
+- 写入机制非写时复制，比写时复制快
+
 #### ScheduledExecutorService
 
 - 定时器
 - schedule 执行一次
 - scheduleAtFixedRate 多次执行
+
+#### ReadWriteLock
+
+- 读锁可以在没有写锁的时候被多个线程同时持有，写锁是独占的
+- 多读少写性能高
+
+#### Fork/Join
+
+##### ForkJoinPool
+
+- invoke 启动任务
+
+##### RecursiveTask
+
+- 定义子任务
+- invokeAll 调用子任务
+
+#### TransferQueue
+
+- 队列满时，阻塞生产者
 
 ### 有意思的问题：为什么 System.out.println() 不会被中断？
 
