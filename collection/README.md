@@ -56,4 +56,28 @@
 - 自反性、对称性、传递性、一致性、为 null 结果为 false
 - 默认 equals 比较地址
 
+## hashcode
 
+### 正确的 hashcode
+
+1. 给 result 赋予某个非 0 常量
+1. 对于每一个域，计算出一个散列码 c
+1. 合并计算， result = result * 37 + c
+1. 返回 result
+
+### 散列码 c 计算公式
+
+|域类型|计算公式|
+|:---:|:---:|
+|boolean|0 1|
+|byte char short int|(int)|
+|long|(int) f >> 32|
+|float|Float.floatToIntBits|
+|double|(int)Double.doubleToIntBits >> 32|
+|Object|hashcode|
+|数组|每一项运用|
+
+### HashSet 原理
+
+- 先用 hashcode 计算，无冲突直接使用得到的值
+- 有冲突，遍历冲突所在的 list，equals 计算得出值
