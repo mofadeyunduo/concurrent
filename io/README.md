@@ -1,5 +1,11 @@
 # IO
 
+## 通道、缓冲器
+
+- 通道是一个获取数据的通路
+- 缓冲器承载了数据
+- 更接近于底层操作系统的操作机制，性能更高
+
 ## Java
 
 ### File
@@ -55,3 +61,24 @@
 ### ProcessBuilder
 
 - 进程控制
+
+### NIO
+
+#### Channel
+
+- FileInputStream、FileOutputStream、RandomAccessFile 增加了 Channel
+- 操作 ByteBuffer 
+- transferTo、transferFrom 传输数据
+- read 读取数据
+- write 写入数据
+
+#### ByteBuffer
+
+- 读取数据的单元
+- wrap 保存字节数据
+- allocate 分配空间
+- limit 读写阈值，capacity 容量，position 当前读写位置，[工作流程](https://blog.csdn.net/u013096088/article/details/78638245)
+- 初始状态，limit = capacity，position = 0
+- 工作时，移动 position，直至 limit
+- flip，limit = position， position = 0，一般是写了很多数据，重新读数据，才会这样使用
+- clear，limit = capacity,position = 0，写完数据准备读会使用
