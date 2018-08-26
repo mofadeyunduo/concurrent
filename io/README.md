@@ -71,6 +71,7 @@
 - transferTo、transferFrom 传输数据
 - read 读取数据
 - write 写入数据
+- tryLock 非阻塞加锁，lock 阻塞加锁，position 加锁位置，limit 结束位置
 
 #### ByteBuffer
 
@@ -80,5 +81,6 @@
 - limit 读写阈值，capacity 容量，position 当前读写位置，[工作流程](https://blog.csdn.net/u013096088/article/details/78638245)
 - 初始状态，limit = capacity，position = 0
 - 工作时，移动 position，直至 limit
-- flip，limit = position， position = 0，一般是写了很多数据，重新读数据，才会这样使用
-- clear，limit = capacity,position = 0，写完数据准备读会使用
+- flip，limit = position，position = 0，一般是写了很多数据，重新读数据，才会这样使用
+- clear，limit = capacity，position = 0，写完数据准备读会使用
+- rewind，position = 0
