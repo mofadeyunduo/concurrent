@@ -15,14 +15,14 @@
 - 保存了对象引用等
 - 线程私有
 - 会 OOM、StackOverflow
-- - -Xss128k 指定栈大小
+- 指定栈大小，-Xss128k 
 
 ### 本地方法栈（Native Method Stack）
 
 - 与虚拟机栈基本相同，执行的事本地方法
 - 线程私有
 - 会 OOM、StackOverflow
-- - -Xss128k 指定栈大小
+- 指定栈大小，-Xss128k 
 
 ### 堆（Heap） 
 
