@@ -47,9 +47,22 @@ public class GCTest {
         }
     }
 
+    /**
+     * VMArgs: -XX:+UseSerialGC -verbose:gc -Xms20m -Xmx20m -Xmn10m -XX:+PrintGCDetails -XX:SurvivorRatio=8
+     * VMArgs: -XX:+UseSerialGC -verbose:gc -Xms20m -Xmx20m -Xmn10m -XX:+PrintGCDetails -XX:SurvivorRatio=8 -XX:PretenureSizeThreshold=314528
+     */
+    public static void testAllocation() {
+        byte[] allocation1,  allocation2, allocation3, allocation4;
+        allocation1 = new byte[2 * ONE_MB];
+        allocation2 = new byte[2 * ONE_MB];
+        allocation3 = new byte[2 * ONE_MB];
+        allocation4 = new byte[4 * ONE_MB];
+    }
+
     public static void main(String[] args) throws InterruptedException {
 //        gc();
-        save();
+//        save();
+        testAllocation();
     }
 
     private static class FinalizeClass {

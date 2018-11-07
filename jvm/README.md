@@ -144,3 +144,124 @@
 
 - 新生代：每次垃圾手机都会有大量对象死去，适合使用复制算法
 - 老年代：存活率高，没有额外空间可以使用，适合使用标记-清除或标记复制算法
+- Eden：新生代空间的一部分
+- Survivor： 分为 from、to，为新生代空间一部分，GC 收集 Eden 和 from，转移非垃圾到 to 中或者老年代空间中
+
+### 分代原因
+
+新生代存活率低，老年代存活率高，不同的特点决定了不同的算法：新生代存活率低注定要频繁进行 Minor GC，而老年代存活率高会使 Major GC 频率降低。
+
+## GC 类型
+
+- Minor GC：针对新生代 GC
+- Major GC：针对老年代 GC，通常会变成 Full GC
+- Full GC：Major GC + Minor GC
+
+## Java 收集器
+
+### 枚举根节点
+
+OopMap 保存了类型信息，包括引用，方便 GC roots 找引用链
+
+### Safepoint、Safe Region
+
+- 到达 Safepoint，才能进行 GC
+- 常见 Safepoint
+  - 方法调用
+  - 循环跳转
+  - 异常跳转
+- 如何让所有代码跑到 Safepoint
+  - 抢断式中断(Preemptive Suspension)：GC 发生时，强制中断；如果代码不在 Safepoint，让其跑到 Safepoint，一般不采用
+  - 主动式中断（Voluntary Suspension）：各个线程主动去轮训该标志，如 test 指令
+- Safe Region 是指代码引用不会发生变化的区域，GC 时安全
+
+### 比较
+
+| 名称 | 新生代 or 老年代 | 特点 | 适用场景 | 相关参数（前面加上 -XX:） |
+| --- | --- | --- | --- |
+| Serial | 新生代 | 单线程 | 在客户端简单而高效 | UseSerialGC(Serial + Serial Old)|
+| ParNew | 新生代 | Serial 多线程版本 | 适合于多核 CPU | UseParNewGC(ParNew + Serial Old) |
+| Parallel Scavenge | 新生代 | 注重于吞吐量（吞吐量 = 运行用户代码时间 / (运行用户代码时间 + 垃圾收集时间)） | 注重吞吐量的场景 | UseParallelGC(PS + Serial Old) |  
+| Serial Old | 老年代 | Serial 老年代版本 | CMS 后备方案，配合 Parallel Scavenge | |
+| Parallel Old | 老年代 | ParNew 老年代版本 | 配合 Parallel Scavenge 使用 | |
+| CMS(Concurrent Mark Sweep) | 老年代 | 响应时间最短为目标 | 响应时间比较短，吞吐量相对于 G1 大一些 | UseConcMarkSweepGC(ParNew + CMS + Serial Old) |
+| G1(Garbage first) | - | 可预测的停顿，可以规定停顿时间 | 对响应时间有要求的，吞吐量要求不高的 | UseG1GC |
+
+### 参数
+
+- UseParallelOldGC(PS + Parallel Old) 
+- SurvivorRatio(Eden、Survivor 比例)
+- PretenureSizeThreShold(直接晋升到老年代大小)
+- MaxTenuringThreshold(晋升老年代年龄)
+- UseAdaptiveSizePolicy(动态调整区域大小、进入老年代年龄)
+- HandlePromotionFailure(是否允许担保失败)
+- ParallelGCThreads(GC 内存回收线程数)
+- GCTimeRatio(GC 占用总时间比率，在 PS 收集器有效)
+- MaxGCPauseMillis(GC 最长停顿时间，在 PS 收集器有效)
+- CMSInitiatingOccupancyFraction（CMS，空间使用多少开始 GC）
+- UseCMSCompactAtFullCollection（CMS，是否在 CMS 完成之后整理内存碎片）
+- CMSFullGCsBeforeCompaction(CMS，在若干次垃圾收集后启动一次碎片整理)
+
+[更多参数](https://www.oracle.com/technetwork/articles/java/vmoptions-jsp-140102.html)
+
+### CMS
+
+STW：stop the world，停止所有线程
+
+#### 流程
+
+1. 初始标记（CMS initial mark），STW，时间很短，找出所有 GC roots 可以关联的对象
+1. 并发标记（CMS concurrent mark），不会 STW，时间很长，并发执行，找出所有需要清理的对象
+1. 重新标记（CMS remark），STW，时间比较短，修正并发阶段可能导致标记错误的对象
+1. 并发清除（CMS concurrent sweep），不会 STW，清理
+
+### 缺点
+
+- 对于单核 CPU 不友好，GC 时候占用很多 CPU 时间，降低吞吐量
+- 产生浮动垃圾（Floating Garbage），由于 CMS 和线程是并行执行，所以不能等到空间满了之后才 GC，此时产生的垃圾叫做 Floating Garbage；CMS 运行期间可能由于 Floating Garbage 导致内存占满，会触发 Concurrent Mode Failure，启动 Serial Old 收集器
+- 由于采用 Mark Sweep 算法导致内存碎片，需要 Full GC 去整理内存
+
+### G1
+
+### 算法
+
+- 分为多个 Region，计算出每个 Region 回收价值，进行回收
+- Region 保存了 Remembered Set，记录了引用关系；在写操作进行时增加了屏障，
+
+### 流程
+
+1. 初始标记（Initial Marking），STW，时间很短，找出所有 GC roots 可以关联的对象
+1. 并发标记（Concurrent Marking），不会 STW，时间很长，并发执行，找出所有需要清理的对象
+1. 最终标记（Final Marking），STW，时间比较短，修正并发阶段可能导致标记错误的对象，根据Remembered Set Logs修正 根据Remembered Set
+1. 筛选回收（Live Data Counting And Evacuation），STW，时间短，根据 Region 的价值回收垃圾
+
+### 优点
+
+- 并行与并发
+- 分代收集，内部区分年轻代和老年代，不需要配合其他收集器
+- 空间整合，将内存分为多个 Region，Region 之间是基于复制算法
+- 可预测的停顿，可以指定 M 毫秒内垃圾收集时间不超过 N 毫秒
+
+## GC 日志
+
+```
+[GC (Allocation Failure) [Tenured: 6144K->6593K(10240K), 0.0030056 secs] 8201K->6593K(19456K), [Metaspace: 2994K->2994K(1056768K)], 0.0030760 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+[Full GC (Allocation Failure) [Tenured: 6593K->6577K(10240K), 0.0034362 secs] 6593K->6577K(19456K), [Metaspace: 2994K->2994K(1056768K)], 0.0034777 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+```
+
+- GC 类型 + 老年代回收情况 + 总内存回收情况 + Metaspace 回收情况 + 时间（用户态 + 内核态 + 墙钟时间）
+- 不同的收集器会用不同的字段，基本上保持一致
+
+## 内存分配、回收
+
+- 对象优先在 Eden 分配
+- 大对象直接进入老年代（尽量不要有短命的大对象，Major GC 频繁）
+- 长期存活的对象进入老年代
+- 动态对象年龄判断（如果相同年龄的对象大小占用 Survivor（from） 空间的 1/2，直接进入老年代）
+
+### 空间担保分配
+
+- 如果老年代剩余空间比年轻代占用空间大（说明装得下所有的年轻代，没有风险），Minor GC 安全
+- 否则，如果担保失败且老年代剩余空间比历次晋升到老年代的对象大小总和大，尝试进行 Minor GC
+- 否则，进行 Full GC
+- 如果尝试进行的 Minor GC 失败，进行一次 Full GC
