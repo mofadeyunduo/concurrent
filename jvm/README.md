@@ -265,3 +265,29 @@ STW：stop the world，停止所有线程
 - 否则，如果担保失败且老年代剩余空间比历次晋升到老年代的对象大小总和大，尝试进行 Minor GC
 - 否则，进行 Full GC
 - 如果尝试进行的 Minor GC 失败，进行一次 Full GC
+
+## JVM 工具
+
+### 命令行
+
+命令行少用，费时。
+
+- jps: 显示虚拟机进程
+- jstat: 虚拟机运行数据
+- jinfo: 虚拟机配置信息
+- jmap： 内存转储快照（heapdump）
+- jhat：分析 heapdump 文件，不建议使用，功能简陋，占用资源
+- jstack：显示虚拟机进程快照
+
+### GUI
+
+- jconsole 老版本
+- jvisualvm 新版本，推荐使用，插件化，功能更多，比如 btrace（扩展代码
+
+## JVM 调优案例
+
+- 高性能硬件上的程序部署策略：每个 JVM 分配大内存，GC 时间长，STW 时间过长，影响用户体验；需要分成很多 JVM，每个 JVM 占小内存。
+- 堆外内存导致溢出：OOM 原因是 null；Direct Memory 只有在 Full GC 才会回收
+- 外部命令导致系统缓慢：调用 shell 脚本导致系统缓慢；删除 shell 脚本，改成 java 命令
+- JVM 进程崩溃，线程过多：异步方式调用接口等待返回；改用生产者消费者模式
+

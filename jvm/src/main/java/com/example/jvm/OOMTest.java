@@ -113,10 +113,7 @@ public class OOMTest {
 //        internTest();
 //        methodAreaOOMJDK7();
 //        metaSpaceOOMJDK8();
-//        directMemoryODOM();
-
-        Float f = 1f;
-        System.out.println(Integer.toHexString(Float.floatToIntBits(f)));
+        directMemoryODOM();
     }
 
 }
