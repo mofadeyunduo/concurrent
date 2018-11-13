@@ -1,3 +1,4 @@
+[TOC]
 # JVM
 
 本文基于 JDK 8。
@@ -215,7 +216,7 @@ STW：stop the world，停止所有线程
 1. 重新标记（CMS remark），STW，时间比较短，修正并发阶段可能导致标记错误的对象
 1. 并发清除（CMS concurrent sweep），不会 STW，清理
 
-### 缺点
+#### 缺点
 
 - 对于单核 CPU 不友好，GC 时候占用很多 CPU 时间，降低吞吐量
 - 产生浮动垃圾（Floating Garbage），由于 CMS 和线程是并行执行，所以不能等到空间满了之后才 GC，此时产生的垃圾叫做 Floating Garbage；CMS 运行期间可能由于 Floating Garbage 导致内存占满，会触发 Concurrent Mode Failure，启动 Serial Old 收集器
@@ -223,19 +224,19 @@ STW：stop the world，停止所有线程
 
 ### G1
 
-### 算法
+#### 算法
 
 - 分为多个 Region，计算出每个 Region 回收价值，进行回收
 - Region 保存了 Remembered Set，记录了引用关系；在写操作进行时增加了屏障，
 
-### 流程
+#### 流程
 
 1. 初始标记（Initial Marking），STW，时间很短，找出所有 GC roots 可以关联的对象
 1. 并发标记（Concurrent Marking），不会 STW，时间很长，并发执行，找出所有需要清理的对象
 1. 最终标记（Final Marking），STW，时间比较短，修正并发阶段可能导致标记错误的对象，根据Remembered Set Logs修正 根据Remembered Set
 1. 筛选回收（Live Data Counting And Evacuation），STW，时间短，根据 Region 的价值回收垃圾
 
-### 优点
+#### 优点
 
 - 并行与并发
 - 分代收集，内部区分年轻代和老年代，不需要配合其他收集器
@@ -290,4 +291,68 @@ STW：stop the world，停止所有线程
 - 堆外内存导致溢出：OOM 原因是 null；Direct Memory 只有在 Full GC 才会回收
 - 外部命令导致系统缓慢：调用 shell 脚本导致系统缓慢；删除 shell 脚本，改成 java 命令
 - JVM 进程崩溃，线程过多：异步方式调用接口等待返回；改用生产者消费者模式
+
+## Java 内存模型
+
+### 线程数据存储
+
+- 所有变量都存在主内存（Main Memory）
+- 每个线程都有自己的工作内存（Main Memory）
+
+### volatile
+
+- 可见性：修改之后的结果会立即刷新到主内存中，并不代表并发安全（如 i++），尽量使用原子性的操作来操作 volatile 数据
+- 有序性：禁止编译器重排序优化
+- 轻量
+
+### 原则
+
+- 原子性、可见性、有序性
+- 先行发生关系（happens-before）
+  - 程序次序原则：在一个线程内，按照代码顺序执行
+  - 管程锁定原则：unlock 一定发生在 lock 之前
+  - volatile 变量规则：写优先于读
+  - 线程启动规则：start 优先
+  - 线程终止规则：所有操作先行于对此线程的终止
+  - 线程中断规则：interrupt() 优先于检测到中断事件
+  - 对象终结原则：初始化优先于 finalize()
+  - 传递性：A 比 B 先，B 比 C 先，A 一定比 C 线
+
+### 线程实现（操作系统方面）
+
+- 轻量级进程，即线程
+- 调度方式：抢占式
+
+### 线程状态
+
+- New：刚刚创建
+- Runnable：正在运行
+- Waiting：等待，如 Object.wait()、Thread.join()
+- Timed Waiting：限期等待，在一定时间唤醒，设置了 timeout、Thread.sleep() 方法
+- Blocked，阻塞，如 synchronized
+- Terminated：终止
+
+## 线程安全
+
+- 不可变对象：共享数据为 final，类为 final，要想修改陈胜新对象
+- 绝对线程安全：绝对安全，不可能
+- 相对线程安全：普通的 Java 类所处的水平
+- 线程兼容：使用同步手段保证线程安全
+- 线程对立：怎么都线程不安全，应该避免
+
+### 线程安全实现
+ 
+- 阻塞
+  - synchronized 同步
+  - RentrantLock 可重入锁（等待可中断、可以实现公平锁、可以绑定多个解锁条件）
+- 非阻塞（乐观锁）
+  - CAS
+
+### 锁优化
+
+- 适应性自旋锁（Adaptive Spining）：进入 synchronized 之前，如果对象的锁是轻量级锁，会忙循环一段时间（自适应），这么做是因为在实践中，持有锁的线程会很快释放锁，减少切换上下文开销
+- 锁消除（Lock Elimination）：一些代码上需要同步，但是没有共享数据的，消除锁
+- 锁粗化（Lock Coarsening）：对同一个对象反复加锁、解锁，会把加锁操作范围扩大，例如原来在循环里，后放在循坏外
+- 轻量锁（Lightweight Locking）：当有两个线程竞争的时候使用，第一个线程通过 CAS 获得锁，如果成功，执行代码；第二个线程通过 CAS 未获得锁，会自旋，如果自旋之后再次获得锁还是失败，膨胀为重量级锁
+- 偏向锁（Baised Locking）：只有一个线程时使用，只需要 CAS 部分字段（线程 ID），如果成功，获得锁，之后只需要比较线程 ID 即可；如果失败，说明不是偏向该线程，检查存在线程是否活着，如果存活，撤回偏向锁，膨胀为轻量级锁；如果死去，撤回偏向锁，偏向当前线程。线程冲突较多建议禁用偏向锁，-XX:-UseBiasedLocking
 
