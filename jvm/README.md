@@ -179,7 +179,7 @@ OopMap 保存了类型信息，包括引用，方便 GC roots 找引用链
 ### 比较
 
 | 名称 | 新生代 or 老年代 | 特点 | 适用场景 | 相关参数（前面加上 -XX:） |
-| --- | --- | --- | --- |
+| --- | --- | --- | --- | --- |
 | Serial | 新生代 | 单线程 | 在客户端简单而高效 | UseSerialGC(Serial + Serial Old)|
 | ParNew | 新生代 | Serial 多线程版本 | 适合于多核 CPU | UseParNewGC(ParNew + Serial Old) |
 | Parallel Scavenge | 新生代 | 注重于吞吐量（吞吐量 = 运行用户代码时间 / (运行用户代码时间 + 垃圾收集时间)） | 注重吞吐量的场景 | UseParallelGC(PS + Serial Old) |  
