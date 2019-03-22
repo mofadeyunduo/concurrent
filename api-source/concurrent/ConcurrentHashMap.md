@@ -17,9 +17,9 @@ ConcurrentHashMap 是一个并发安全的 HashMap。它的优点首先是并发
 
 ### 关键方法
 
-#### put
+#### put 放置元素
 
-该方法的主要功能是将一个 mapping 以并发安全的形式放入 HashMap 中。
+该方法的主要功能是将一个 mapping 以并发安全的形式放入 HashMap 中，尤其注意并发安全。
 
 ```
     public V put(K key, V value) {
@@ -95,5 +95,111 @@ ConcurrentHashMap 是一个并发安全的 HashMap。它的优点首先是并发
         }
         addCount(1L, binCount); // todo
         return null;
+    }
+```
+
+##### initTable 
+
+初始化 Hash 表，尤其注意并发安全。
+
+```
+    private final Node<K,V>[] initTable() {
+        Node<K,V>[] tab; int sc;
+        while ((tab = table) == null || tab.length == 0) {  // 想象一下并发场景，两个 put 操作进行中导致一起初始化，可能第一个操作表已经初始化完成，所以这里要判断退出 
+            if ((sc = sizeCtl) < 0)  // sc < 0  表示已经有别的线程在初始化了
+                Thread.yield(); // 交出线程控制权，之后空循环等待直到另一个线程完成表的初始化完成退出
+            else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) { // CAS 原子性的设置 SIZECTL
+                try {
+                    if ((tab = table) == null || tab.length == 0) { // 别的线程可能已经在别的地方修改了表
+                        int n = (sc > 0) ? sc : DEFAULT_CAPACITY; // 初始化大小
+                        @SuppressWarnings("unchecked")
+                        Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
+                        table = tab = nt;
+                        sc = n - (n >>> 2);
+                    }
+                } finally {
+                    sizeCtl = sc; // 设置表大小
+                }
+                break;
+            }
+        }
+        return tab;
+    }
+```
+
+##### treeifyBin
+
+把桶进行树化。
+
+```
+    private final void treeifyBin(Node<K,V>[] tab, int index) {
+        Node<K,V> b; int n, sc;
+        if (tab != null) {
+            if ((n = tab.length) < MIN_TREEIFY_CAPACITY) // 如果没有到达 MIN_TREEIFY_CAPACITY，最小树化表容量
+                tryPresize(n << 1); // resize 
+            else if ((b = tabAt(tab, index)) != null && b.hash >= 0) { // 到了 MIN_TREEIFY_CAPACITY，进行树化
+                synchronized (b) { // 锁住当前桶
+                    if (tabAt(tab, index) == b) { // 双检锁
+                        TreeNode<K,V> hd = null, tl = null;
+                        for (Node<K,V> e = b; e != null; e = e.next) { // 构建一个 TreeNode 组成的链表
+                            TreeNode<K,V> p =
+                                new TreeNode<K,V>(e.hash, e.key, e.val,
+                                                  null, null);
+                            if ((p.prev = tl) == null)
+                                hd = p;
+                            else
+                                tl.next = p;
+                            tl = p;
+                        }
+                        setTabAt(tab, index, new TreeBin<K,V>(hd)); 
+                    }
+                }
+            }
+        }
+    }
+
+```
+
+##### addCount
+
+增加数量
+
+```
+    private final void addCount(long x, int check) {
+        CounterCell[] as; long b, s;
+        if ((as = counterCells) != null ||
+            !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
+            CounterCell a; long v; int m;
+            boolean uncontended = true;
+            if (as == null || (m = as.length - 1) < 0 ||
+                (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
+                !(uncontended =
+                  U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
+                fullAddCount(x, uncontended);
+                return;
+            }
+            if (check <= 1)
+                return;
+            s = sumCount();
+        }
+        if (check >= 0) {
+            Node<K,V>[] tab, nt; int n, sc;
+            while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
+                   (n = tab.length) < MAXIMUM_CAPACITY) {
+                int rs = resizeStamp(n);
+                if (sc < 0) {
+                    if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                        sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                        transferIndex <= 0)
+                        break;
+                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                        transfer(tab, nt);
+                }
+                else if (U.compareAndSwapInt(this, SIZECTL, sc,
+                                             (rs << RESIZE_STAMP_SHIFT) + 2))
+                    transfer(tab, null);
+                s = sumCount();
+            }
+        }
     }
 ```
